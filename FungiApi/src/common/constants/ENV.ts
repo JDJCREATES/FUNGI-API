@@ -9,28 +9,41 @@ import { NodeEnvs } from '.';
                                  Setup
 ******************************************************************************/
 
-const ENV = cleanEnv(process.env, {
-  // existing validators
-  NodeEnv: str({
-    choices: ['development', 'production', 'test'] as const,
-    desc: 'The application environment',
-  }),
-  Port: port({
-    default: 3000,
-    desc: 'Port to bind the HTTP server to',
-  }),
+// Check if required environment variables are present
+const requiredEnvVars = [
+  'NODE_ENV',
+];
 
-  // Add this validator for your Mongo URI:
-  MONGODB_URI: str({
-    desc: 'MongoDB connection string',
-  }),
+const missingVars = requiredEnvVars.filter(
+  (envVar) => !process.env[envVar]
+);
 
+if (missingVars.length > 0) {
+  console.error('================================');
+  console.error(' Missing environment variables:');
+  missingVars.forEach((envVar) => {
+    console.error(`    ${envVar}: The application environment`);
+  });
+  console.error('================================');
+  process.exit(1);
+}
 
+// Environment variables with defaults
+export default {
+  // Server
+  Port: Number(process.env.PORT || 3000),
+  NodeEnv: process.env.NODE_ENV || 'development',
+  
+  // Database
+  MongoUri: process.env.MONGODB_URI || 'mongodb://localhost:27017/fungi-api',
+  
+  // API
+  ApiPrefix: process.env.API_PREFIX || '/api',
+  
+  // Logging
+  LogLevel: process.env.LOG_LEVEL || 'info',
+  
+  // CORS
+  CorsOrigin: process.env.CORS_ORIGIN || '*',
+};
 
-});
-
-/******************************************************************************
-                            Export default
-******************************************************************************/
-
-export default ENV;

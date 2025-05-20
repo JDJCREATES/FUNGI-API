@@ -3,16 +3,14 @@ import http from 'http';
 import logger from 'jet-logger';
 import mongoose from 'mongoose';
 
-import ENV from '@src/common/constants/ENV';
-import connectDB from '@src/config/db';
-import app from './server';     // your Express app
+import ENV from './common/constants/ENV';
+import connectDB from './config/db';
+import app from './server';
 
-let httpServer: http.Server;   // will hold our HTTP server instance
+// Create HTTP server
+let httpServer: http.Server;
 
-/******************************************************************************
-                                Start Server
-******************************************************************************/
-
+// Start server function
 const start = async () => {
   try {
     // 1. Connect to MongoDB
@@ -22,56 +20,62 @@ const start = async () => {
     // 2. Create HTTP server and listen
     httpServer = http.createServer(app).listen(ENV.Port, () => {
       logger.info(`🚀  Server started on port: ${ENV.Port}`);
+      logger.info(`Try accessing: http://localhost:${ENV.Port}/test`);
+      logger.info(`API endpoint: http://localhost:${ENV.Port}/api/mushrooms`);
+      logger.info(`Debug routes: http://localhost:${ENV.Port}/debug-routes`);
     });
   } catch (err: any) {
-    logger.err('❌  Failed to start server', true);
+    logger.err('❌  Failed to start server', err);
     process.exit(1);
   }
 };
 
-// 3. Handle unhandled rejections
+// Handle unhandled rejections
 process.on('unhandledRejection', (reason, promise) => {
   logger.err('Unhandled Rejection at promise:', true);
   console.dir({ reason, promise });
 });
 
-// 4. Handle uncaught exceptions
+// Handle uncaught exceptions
 process.on('uncaughtException', (err) => {
   logger.err('Uncaught Exception:', true);
   logger.err(err.stack ?? err.toString(), true);
   gracefulShutdown();
 });
 
-// 5. Graceful shutdown
+// Graceful shutdown
 const gracefulShutdown = () => {
   logger.info('🔌  Shutting down gracefully...');
 
   // Stop accepting new connections
-  httpServer.close(() => {
-    logger.info('👍  HTTP server closed');
+  if (httpServer) {
+    httpServer.close(() => {
+      logger.info('👍  HTTP server closed');
 
-    // Then close the MongoDB connection
-    mongoose.connection
-      .close(false)
-      .then(() => {
-        logger.info('👍  MongoDB connection closed');
-        process.exit(0);
-      })
-      .catch((err) => {
-        logger.err('Error during MongoDB closure:', true);
-        process.exit(1);
-      });
-  });
+      // Then close the MongoDB connection
+      mongoose.connection
+        .close(false)
+        .then(() => {
+          logger.info('👍  MongoDB connection closed');
+          process.exit(0);
+        })
+        .catch((err) => {
+          logger.err('Error during MongoDB closure:', true);
+          process.exit(1);
+        });
+    });
 
-  // Force exit after 10s
-  setTimeout(() => {
-    logger.err('⏱️  Forced shutdown', true);
-    process.exit(1);
-  }, 10_000);
+    // Force exit after 10s
+    setTimeout(() => {
+      logger.err('⏱️  Forced shutdown', true);
+      process.exit(1);
+    }, 10_000);
+  }
 };
 
-// 6. Handle termination signals
+// Handle termination signals
 process.on('SIGTERM', gracefulShutdown);
 process.on('SIGINT', gracefulShutdown);
 
+// Start the server
 start();

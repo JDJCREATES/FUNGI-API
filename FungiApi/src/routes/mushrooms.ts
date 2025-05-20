@@ -7,15 +7,22 @@ import {
   deleteMushroom,
 } from '../controllers/mushroomController';
 
+// Create router
 const router = Router();
 
-router.route('/')
-  .get(getAllMushrooms)
-  .post(createMushroom);
+// Log when routes are accessed
+router.use((req, res, next) => {
+  console.log(`Mushroom route accessed: ${req.method} ${req.originalUrl}`);
+  next();
+});
 
-router.route('/:id')
-  .get(getMushroomById)
-  .put(updateMushroom)
-  .delete(deleteMushroom);
+// Define routes individually to avoid TypeScript issues
+router.get('/', getAllMushrooms);
+router.post('/', createMushroom);
 
+router.get('/:id', getMushroomById);
+router.put('/:id', updateMushroom);
+router.delete('/:id', deleteMushroom);
+
+// Export router
 export default router;

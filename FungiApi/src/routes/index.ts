@@ -1,33 +1,16 @@
 import { Router } from 'express';
+import mushroomRoutes from './mushrooms';
 
-import Paths from '@src/common/constants/Paths';
-import UserRoutes from './UserRoutes';
+// Create the base router
+const baseRouter = Router();
 
+// Add mushroom routes
+baseRouter.use('/mushrooms', mushroomRoutes);
 
-/******************************************************************************
-                                Setup
-******************************************************************************/
+// Add a test route to verify the router is working
+baseRouter.get('/test', (req, res) => {
+  res.json({ message: 'API router is working!' });
+});
 
-const apiRouter = Router();
-
-
-// ** Add UserRouter ** //
-
-// Init router
-const userRouter = Router();
-
-// Get all users
-userRouter.get(Paths.Users.Get, UserRoutes.getAll);
-userRouter.post(Paths.Users.Add, UserRoutes.add);
-userRouter.put(Paths.Users.Update, UserRoutes.update);
-userRouter.delete(Paths.Users.Delete, UserRoutes.delete);
-
-// Add UserRouter
-apiRouter.use(Paths.Users.Base, userRouter);
-
-
-/******************************************************************************
-                                Export default
-******************************************************************************/
-
-export default apiRouter;
+// Export the router
+export default baseRouter;
