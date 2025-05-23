@@ -1,6 +1,8 @@
 import { IUser } from '@src/models/User';
 import { getRandomInt } from '@src/common/util/misc';
 
+import MongoUserRepo from './MongoUserRepo';
+
 import orm from './MockOrm';
 
 
@@ -20,6 +22,8 @@ async function getOne(email: string): Promise<IUser | null> {
   }
   return null;
 }
+
+
 
 /**
  * See if a user with the given id exists.
@@ -86,14 +90,7 @@ async function delete_(id: number): Promise<void> {
 
 // **** Unit-Tests Only **** //
 
-/**
- * Delete every user record.
- */
-async function deleteAllUsers(): Promise<void> {
-  const db = await orm.openDb();
-  db.users = [];
-  return orm.saveDb(db);
-}
+
 
 /**
  * Insert multiple users. Can't do multiple at once cause using a plain file 
@@ -118,13 +115,4 @@ async function insertMult(
                                 Export default
 ******************************************************************************/
 
-export default {
-  getOne,
-  persists,
-  getAll,
-  add,
-  update,
-  delete: delete_,
-  deleteAllUsers,
-  insertMult,
-} as const;
+export default MongoUserRepo;

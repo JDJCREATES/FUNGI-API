@@ -3,14 +3,13 @@ import HttpStatusCodes from '@src/common/constants/HttpStatusCodes';
 
 import UserRepo from '@src/repos/UserRepo';
 import { IUser } from '@src/models/User';
-
+import User from '@src/models/User';
 
 /******************************************************************************
                                 Constants
 ******************************************************************************/
 
 export const USER_NOT_FOUND_ERR = 'User not found';
-
 
 /******************************************************************************
                                 Functions
@@ -25,8 +24,23 @@ function getAll(): Promise<IUser[]> {
 
 /**
  * Add one user.
+ * Note: This is an admin function. For user registration, use AuthService.register
  */
-function addOne(user: IUser): Promise<void> {
+async function addOne(user: IUser): Promise<void> {
+  // Check if user already exists
+  const existingUser = await UserRepo.getOne(user.email);
+  if (existingUser) {
+    throw new RouteError(
+      HttpStatusCodes.BAD_REQUEST,
+      'Email already in use'
+    );
+  }
+  
+  // Hash password if it exists
+  if (user.password) {
+    user.password = await User.hashPassword(user.password);
+  }
+  
   return UserRepo.add(user);
 }
 
@@ -41,6 +55,12 @@ async function updateOne(user: IUser): Promise<void> {
       USER_NOT_FOUND_ERR,
     );
   }
+  
+  // Hash password if it's being updated
+  if (user.password) {
+    user.password = await User.hashPassword(user.password);
+  }
+  
   // Return user
   return UserRepo.update(user);
 }
@@ -60,6 +80,33 @@ async function _delete(id: number): Promise<void> {
   return UserRepo.delete(id);
 }
 
+/**
+ * Reset a user's password (admin function)
+ */
+async function resetPassword(userId: number, newPassword: string): Promise<void> {
+  const persists = await UserRepo.persists(userId);
+  if (!persists) {
+    throw new RouteError(
+      HttpStatusCodes.NOT_FOUND,
+      USER_NOT_FOUND_ERR,
+    );
+  }
+  
+  // Get the user
+  const user = await UserRepo.getOne(userId.toString());
+  if (!user) {
+    throw new RouteError(
+      HttpStatusCodes.NOT_FOUND,
+      USER_NOT_FOUND_ERR,
+    );
+  }
+  
+  // Hash the new password
+  user.password = await User.hashPassword(newPassword);
+  
+  // Update the user
+  return UserRepo.update(user);
+}
 
 /******************************************************************************
                                 Export default
@@ -70,4 +117,5 @@ export default {
   addOne,
   updateOne,
   delete: _delete,
+  resetPassword,
 } as const;

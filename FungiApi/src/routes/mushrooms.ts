@@ -6,6 +6,7 @@ import {
   updateMushroom,
   deleteMushroom,
 } from '../controllers/mushroomController';
+import { authenticateUser, authorizeAdmin } from '../middleware/auth';
 
 // Create router
 const router = Router();
@@ -16,13 +17,16 @@ router.use((req, res, next) => {
   next();
 });
 
-// Define routes individually to avoid TypeScript issues
+// Public routes
 router.get('/', getAllMushrooms);
-router.post('/', createMushroom);
-
 router.get('/:id', getMushroomById);
-router.put('/:id', updateMushroom);
-router.delete('/:id', deleteMushroom);
+
+// Protected routes - require authentication
+router.post('/', authenticateUser, createMushroom);
+router.put('/:id', authenticateUser, updateMushroom);
+
+// Admin-only routes
+router.delete('/:id', authenticateUser, authorizeAdmin, deleteMushroom);
 
 // Export router
 export default router;

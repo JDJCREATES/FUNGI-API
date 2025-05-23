@@ -1,6 +1,6 @@
 // src/controllers/mushroomController.ts
-import { RequestHandler } from 'express';
-import Mushroom from '../models/Mushroom';
+import { RequestHandler } from "express";
+import Mushroom from "../models/Mushroom";
 
 // Create
 export const createMushroom: RequestHandler = async (req, res) => {
@@ -22,7 +22,7 @@ export const getAllMushrooms: RequestHandler = async (_, res) => {
 export const getMushroomById: RequestHandler = async (req, res) => {
   const m = await Mushroom.findById(req.params.id);
   if (!m) {
-    res.status(404).json({ error: 'Not found' });
+    res.status(404).json({ error: "Not found" });
     return;
   }
   res.json(m);
@@ -30,7 +30,9 @@ export const getMushroomById: RequestHandler = async (req, res) => {
 
 // Update
 export const updateMushroom: RequestHandler = async (req, res) => {
-  const m = await Mushroom.findByIdAndUpdate(req.params.id, req.body, { new: true });
+  const m = await Mushroom.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+  });
   res.json(m);
 };
 

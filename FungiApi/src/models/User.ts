@@ -1,9 +1,9 @@
 import { isString } from 'jet-validators';
 import { parseObject, TParseOnError } from 'jet-validators/utils';
+import bcrypt from 'bcryptjs';
 
 import { isRelationalKey, transIsDate } from '@src/common/util/validators';
 import { IModel } from './common/types';
-
 
 /******************************************************************************
                                  Constants
@@ -14,8 +14,9 @@ const DEFAULT_USER_VALS = (): IUser => ({
   name: '',
   created: new Date(),
   email: '',
+  password: '',
+  role: 'user'
 });
-
 
 /******************************************************************************
                                   Types
@@ -24,8 +25,9 @@ const DEFAULT_USER_VALS = (): IUser => ({
 export interface IUser extends IModel {
   name: string;
   email: string;
+  password?: string;
+  role?: string;
 }
-
 
 /******************************************************************************
                                   Setup
@@ -37,8 +39,9 @@ const parseUser = parseObject<IUser>({
   name: isString,
   email: isString,
   created: transIsDate,
+  password: isString,
+  role: isString
 });
-
 
 /******************************************************************************
                                  Functions
@@ -61,6 +64,20 @@ function testUser(arg: unknown, errCb?: TParseOnError): arg is IUser {
   return !!parseUser(arg, errCb);
 }
 
+/**
+ * Hash a password
+ */
+async function hashPassword(password: string): Promise<string> {
+  const salt = await bcrypt.genSalt(10);
+  return await bcrypt.hash(password, salt);
+}
+
+/**
+ * Compare password
+ */
+async function comparePassword(candidatePassword: string, hashedPassword: string): Promise<boolean> {
+  return await bcrypt.compare(candidatePassword, hashedPassword);
+}
 
 /******************************************************************************
                                 Export default
@@ -69,4 +86,6 @@ function testUser(arg: unknown, errCb?: TParseOnError): arg is IUser {
 export default {
   new: newUser,
   test: testUser,
+  hashPassword,
+  comparePassword
 } as const;

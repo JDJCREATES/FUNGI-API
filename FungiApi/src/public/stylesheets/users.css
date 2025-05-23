@@ -15,7 +15,6 @@ body .users-column .column-header {
   font-size: 1.2em;
 }
 
-
 /** Add User Column **/
 
 body .add-user-col input {
@@ -26,7 +25,6 @@ body .add-user-col #add-user-btn {
   margin-top: 2px;
   margin-bottom: 10px;
 }
-
 
 /** Users Display Column **/
 
