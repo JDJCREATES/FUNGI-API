@@ -13,6 +13,11 @@ export interface IMushroom extends Document {
   };
   description?: string;
   distribution?: string; //geographical range
+  agarTypes?: {
+  acronym: string;
+  fullName: string;
+  description?: string;
+}[];
   substrateFormulation: { ingredient: string; percentage: number }[];
   substrateMoisture?: number;
   spawn?: {
@@ -221,6 +226,14 @@ const MushroomSchema = new Schema<IMushroom>(
     },
     description: String,
     distribution: String,
+    agarTypes: [
+  {
+    acronym: String,
+    fullName: String,
+    description: String,
+  },
+],
+
     substrateFormulation: [
       {
         ingredient: String,

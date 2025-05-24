@@ -46,4 +46,8 @@ export default {
 
   RefreshSecret: process.env.REFRESH_SECRET || "your-refresh-secret-key",
   RefreshLifetime: process.env.REFRESH_LIFETIME || "7d",
+
+   AdminEmail: process.env.ADMIN_EMAIL || 'admin@example.com',
+  AdminPassword: process.env.ADMIN_PASSWORD || 'changeme',
+  AdminName: process.env.ADMIN_NAME || 'Admin User',
 };

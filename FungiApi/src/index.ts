@@ -7,28 +7,36 @@ import ENV from './common/constants/ENV';
 import connectDB from './config/db';
 import app from './server';
 
+import { ensureAdminExists } from './middleware/ensureAdmin';
+
+const PORT = ENV.Port;
+
 // Create HTTP server
 let httpServer: http.Server;
 
 // Start server function
 const start = async () => {
-  try {
-    // 1. Connect to MongoDB
-    await connectDB();
-    logger.info('✔️  MongoDB connected');
 
-    // 2. Create HTTP server and listen
-    httpServer = http.createServer(app).listen(ENV.Port, () => {
-      logger.info(`🚀  Server started on port: ${ENV.Port}`);
-      logger.info(`Try accessing: http://localhost:${ENV.Port}/test`);
-      logger.info(`API endpoint: http://localhost:${ENV.Port}/api/mushrooms`);
-      logger.info(`Debug routes: http://localhost:${ENV.Port}/debug-routes`);
+// Connect to MongoDB
+mongoose.connect(ENV.MongoUri)
+  .then(async () => {
+    console.log('Connected to MongoDB Atlas successfully');
+    
+    // Ensure admin user exists
+    await ensureAdminExists();
+    
+    // Start the server
+    app.listen(PORT, () => {
+      console.log(`Server running in ${ENV.NodeEnv} mode on port ${PORT}`);
     });
-  } catch (err: any) {
-    logger.err('❌  Failed to start server', err);
+  })
+  .catch(err => {
+    console.error('MongoDB connection error:', err);
     process.exit(1);
-  }
+  });
 };
+
+
 
 // Handle unhandled rejections
 process.on('unhandledRejection', (reason, promise) => {
