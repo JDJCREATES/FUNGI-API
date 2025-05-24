@@ -1,6 +1,71 @@
 import { Schema, model, Document } from 'mongoose';
 
+export enum TrophicMode {
+  Saprotrophic = "saprotrophic",
+  Mycorrhizal = "mycorrhizal",
+  Parasitic = "parasitic",
+  Endophytic = "endophytic",
+  Lichenized = "lichenized",
+  Mixotrophic = "mixotrophic",
+}
+
+export enum CultivationMethod {
+  Indoor = "indoor",
+  Outdoor = "outdoor",
+  Both = "both",
+}
+
+export enum DifficultyLevel {
+  Beginner = "beginner",
+  Intermediate = "intermediate",
+  Advanced = "advanced",
+}
+
+export enum ContaminationRisk {
+  Low = "low",
+  Moderate = "moderate",
+  High = "high",
+  VeryHigh = "very_high",
+}
+
+export enum LightChange {
+  None = "none",
+  Low = "low",
+  Moderate = "moderate",
+  High = "high",
+  NaturalCycle = "natural_cycle",
+}
+
+export enum AirExchange {
+  Passive = "passive",
+  Active = "active",
+  None = "none",
+}
+
+export enum GillType {
+  Gills = "gills",
+  Pores = "pores",
+  Teeth = "teeth",
+  Ridges = "ridges",
+  None = "none",
+}
+
+export enum ResourceType {
+  Article = "article",
+  Book = "book",
+  Website = "website",
+  Video = "video",
+  Journal = "journal",
+}
+
+export enum Visibility {
+  Public = "public",
+  Private = "private",
+  Restricted = "restricted",
+}
+
 export interface IMushroom extends Document {
+  uuid: string;
   scientificName: string;
   commonNames: string[];
   taxonomy?: {
@@ -11,13 +76,14 @@ export interface IMushroom extends Document {
     family: string;
     genus: string;
   };
+  trophicModes?: TrophicMode[];
   description?: string;
-  distribution?: string; //geographical range
+  distribution?: string;
   agarTypes?: {
-  acronym: string;
-  fullName: string;
-  description?: string;
-}[];
+    acronym: string;
+    fullName: string;
+    description?: string;
+  }[];
   substrateFormulation: { ingredient: string; percentage: number }[];
   substrateMoisture?: number;
   spawn?: {
@@ -35,8 +101,8 @@ export interface IMushroom extends Document {
       induction?: {
         tempDrop?: boolean;
         humidityIncrease?: boolean;
-        lightChange?: string;
-        airExchange?: string;
+        lightChange?: LightChange;
+        airExchange?: AirExchange;
       };
       temperature?: { min: number; max: number; unit: string };
       humidity?: { min: number; max: number; unit: string };
@@ -48,13 +114,13 @@ export interface IMushroom extends Document {
   expectedYield?: number;
   biologicalEfficiency?: number;
   flushCount?: number;
-  cultivationMethod: string; //indoor or outdoor
+  cultivationMethod: CultivationMethod;
   cultivationDifficulty?: {
-    level: string; // "beginner", "intermediate", "advanced"
+    level: DifficultyLevel;
     challenges: string[];
-    successRate?: number; // percentage
+    successRate?: number;
   };
-  contaminationRisk: string;
+  contaminationRisk: ContaminationRisk;
   lifecycle?: {
     sporeGermination?: {
       temperature: { min: number; max: number; unit: string };
@@ -62,7 +128,7 @@ export interface IMushroom extends Document {
       timeframe: string;
     };
     myceliumGrowth?: {
-      rate: string; // e.g., "slow", "moderate", "fast"
+      rate: string;
       characteristics: string[];
     };
     pinningTriggers?: string[];
@@ -82,7 +148,7 @@ export interface IMushroom extends Document {
       features: string[];
     };
     gillsOrPores?: {
-      type: string; // "gills", "pores", "teeth", etc.
+      type: GillType;
       attachment: string;
       spacing: string;
       color: string[];
@@ -114,7 +180,7 @@ export interface IMushroom extends Document {
     traditionalUses?: string[];
     clinicalStudies?: {
       condition: string;
-      effectiveness: string; // e.g., "proven", "promising", "inconclusive"
+      effectiveness: string;
       dosage?: {
         amount: number;
         unit: string;
@@ -130,7 +196,7 @@ export interface IMushroom extends Document {
       }[];
     }[];
     extractionMethods?: {
-      method: string; // e.g., "hot water", "alcohol", "dual extraction"
+      method: string;
       targetCompounds: string[];
       efficiency?: number;
     }[];
@@ -142,7 +208,7 @@ export interface IMushroom extends Document {
       allergenicity?: string;
     };
     preparationForms?: {
-      form: string; // e.g., "powder", "tincture", "tea"
+      form: string;
       instructions?: string;
       shelfLife?: string;
     }[];
@@ -181,7 +247,7 @@ export interface IMushroom extends Document {
     marketValue?: {
       amount: number;
       currency: string;
-      unit: string; // e.g., "per kg", "per pound"
+      unit: string;
       asOf: Date;
     };
     majorProducers?: string[];
@@ -196,7 +262,7 @@ export interface IMushroom extends Document {
     images?: {
       url: string;
       caption?: string;
-      type?: string; // e.g., "fruiting body", "mycelium", "spores"
+      type?: string;
     }[];
     videos?: {
       url: string;
@@ -205,15 +271,32 @@ export interface IMushroom extends Document {
     }[];
     resources?: {
       title: string;
-      type: string; // "article", "book", "website", etc.
+      type: ResourceType;
       url?: string;
       description?: string;
     }[];
   };
+
+  // ✅ NEW: Tags and classification booleans
+  tags?: string[];
+  isEdible?: boolean;
+  isPoisonous?: boolean;
+  isPsychoactive?: boolean;
+
+  // ✅ NEW: Metadata
+  createdAt: Date;
+  updatedAt: Date;
+  createdBy?: string;
+  verified?: boolean;
+
+  // ✅ NEW: Access control
+  visibility?: Visibility;
+  accessRoles?: string[];
 }
 
-const MushroomSchema = new Schema<IMushroom>(
+const MushroomSchema = new Schema(
   {
+    uuid: { type: String, required: true, unique: true },
     scientificName: { type: String, required: true, unique: true },
     commonNames: [String],
     taxonomy: {
@@ -227,13 +310,12 @@ const MushroomSchema = new Schema<IMushroom>(
     description: String,
     distribution: String,
     agarTypes: [
-  {
-    acronym: String,
-    fullName: String,
-    description: String,
-  },
-],
-
+      {
+        acronym: String,
+        fullName: String,
+        description: String,
+      },
+    ],
     substrateFormulation: [
       {
         ingredient: String,
@@ -242,7 +324,7 @@ const MushroomSchema = new Schema<IMushroom>(
     ],
     substrateMoisture: { type: Number, min: 0, max: 100 },
     spawn: {
-      type: String, //grain, liquid,
+      type: String,
       ratio: Number,
       sterilizationMethod: String,
       coolingTemp: Number,
@@ -501,6 +583,16 @@ const MushroomSchema = new Schema<IMushroom>(
         },
       ],
     },
+
+    // ✅ New fields for API base
+    tags: [String],
+    isEdible: Boolean,
+    isPoisonous: Boolean,
+    isPsychoactive: Boolean,
+    createdBy: String,
+    verified: Boolean,
+    visibility: { type: String, enum: ["public", "private", "restricted"], default: "private" },
+    accessRoles: [String],
   },
   { timestamps: true }
 );

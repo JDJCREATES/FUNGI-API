@@ -16,27 +16,24 @@ let httpServer: http.Server;
 
 // Start server function
 const start = async () => {
-
-// Connect to MongoDB
-mongoose.connect(ENV.MongoUri)
-  .then(async () => {
-    console.log('Connected to MongoDB Atlas successfully');
-    
-    // Ensure admin user exists
-    await ensureAdminExists();
-    
-    // Start the server
-    app.listen(PORT, () => {
-      console.log(`Server running in ${ENV.NodeEnv} mode on port ${PORT}`);
+  // Connect to MongoDB
+  mongoose.connect(ENV.MongoUri)
+    .then(async () => {
+      console.log('Connected to MongoDB Atlas successfully');
+      
+      // Ensure admin user exists
+      await ensureAdminExists();
+      
+      // Start the server and store the reference
+      httpServer = app.listen(PORT, () => {
+        console.log(`Server running in ${ENV.NodeEnv} mode on port ${PORT}`);
+      });
+    })
+    .catch(err => {
+      console.error('MongoDB connection error:', err);
+      process.exit(1);
     });
-  })
-  .catch(err => {
-    console.error('MongoDB connection error:', err);
-    process.exit(1);
-  });
 };
-
-
 
 // Handle unhandled rejections
 process.on('unhandledRejection', (reason, promise) => {
@@ -78,6 +75,18 @@ const gracefulShutdown = () => {
       logger.err('⏱️  Forced shutdown', true);
       process.exit(1);
     }, 10_000);
+  } else {
+    // If server hasn't started yet, just close MongoDB connection
+    mongoose.connection
+      .close(false)
+      .then(() => {
+        logger.info('👍  MongoDB connection closed');
+        process.exit(0);
+      })
+      .catch((err) => {
+        logger.err('Error during MongoDB closure:', true);
+        process.exit(1);
+      });
   }
 };
 
